@@ -20,7 +20,6 @@ A modern, reactive weather information application that provides real-time weath
 - **Laravel** 13
 - **Composer** (latest)
 - **Node.js** 18+
-- **npm** or **yarn**
 
 ## 🚀 Quick Start
 
