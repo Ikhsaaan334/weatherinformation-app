@@ -10,8 +10,14 @@ export type PageProps<
 > = T & {
     auth: {
         user: User;
+        roles: string[];
     };
     can?: {
         manage_cities: boolean;
+        manage_users: boolean;
+    };
+    flash: {
+        message: string | null;
+        error: string | null;
     };
 };

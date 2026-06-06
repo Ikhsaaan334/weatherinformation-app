@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -19,8 +20,19 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('cities', CityController::class);
+    // Read-only access for any authenticated user (admin or user).
+    Route::get('cities', [CityController::class, 'index'])->name('cities.index');
     Route::get('cities/{city}/weather', [CityController::class, 'weather'])->name('cities.weather');
+
+    // Admin-only management.
+    Route::middleware('role:admin')->group(function () {
+        Route::post('cities', [CityController::class, 'store'])->name('cities.store');
+        Route::match(['put', 'patch'], 'cities/{city}', [CityController::class, 'update'])->name('cities.update');
+        Route::delete('cities/{city}', [CityController::class, 'destroy'])->name('cities.destroy');
+
+        Route::get('admin/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::patch('admin/users/{user}/role', [UserController::class, 'updateRole'])->name('admin.users.update-role');
+    });
 });
 
 Route::middleware('auth')->group(function () {

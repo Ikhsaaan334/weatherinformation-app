@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import FloatingNavbar from '@/Components/FloatingNavbar.vue';
-import { Link } from '@inertiajs/vue3';
+import FlashToast from '@/Components/FlashToast.vue';
 </script>
 
 <template>
@@ -9,6 +8,9 @@ import { Link } from '@inertiajs/vue3';
         <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
             <!-- Floating Navbar -->
             <FloatingNavbar />
+
+            <!-- Global flash messages -->
+            <FlashToast />
 
             <!-- Main Content Container -->
             <div class="pl-24 pr-8 py-8 transition-all duration-300">
