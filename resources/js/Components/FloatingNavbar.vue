@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import type { PageProps } from '@/types';
 
 const isHovered = ref(false);
 
-const navItems = [
-    { name: 'Dashboard', href: route('dashboard'), icon: 'dashboard', active: route().current('dashboard') },
-    { name: 'Cities', href: route('cities.index'), icon: 'location_city', active: route().current('cities.*') },
-    { name: 'Profile', href: route('profile.edit'), icon: 'person', active: route().current('profile.edit') },
-];
+const page = usePage<PageProps>();
+const canManageUsers = computed(() => page.props.can?.manage_users ?? false);
+
+const navItems = computed(() => [
+    { name: 'Dashboard', href: route('dashboard'), icon: 'dashboard', active: route().current('dashboard'), show: true },
+    { name: 'Cities', href: route('cities.index'), icon: 'location_city', active: route().current('cities.*'), show: true },
+    { name: 'Users', href: route('admin.users.index'), icon: 'group', active: route().current('admin.users.*'), show: canManageUsers.value },
+    { name: 'Profile', href: route('profile.edit'), icon: 'person', active: route().current('profile.edit'), show: true },
+].filter((item) => item.show));
 
 // Simple SVG Icons
 const icons: Record<string, string> = {
     dashboard: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z',
     location_city: 'M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z',
+    group: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
     person: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
 };
 </script>

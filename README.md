@@ -19,13 +19,14 @@ A modern, reactive weather information application that provides real-time weath
 - **PHP** 8.4 or higher
 - **Laravel** 13
 - **Composer** (latest)
-- **Node.js** 18+
+- **Node.js** 20.19+ (Vite 8 requirement)
+- **pnpm** 10+ (`corepack enable pnpm`)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-Ensure you have PHP 8.4, Node.js 18+, and Composer installed on your system.
+Ensure you have PHP 8.3+, Node.js 20.19+, pnpm, and Composer installed on your system.
 
 ### Installation Steps
 
@@ -38,7 +39,7 @@ composer install
 **2. Install JavaScript dependencies**
 
 ```bash
-npm install
+pnpm install
 ```
 
 **3. Setup environment**
@@ -66,9 +67,22 @@ DB_PASSWORD=
 php artisan migrate --seed
 ```
 
+This seeds the `admin` and `user` roles plus two demo accounts:
+
+| Role  | Email              | Password   |
+| ----- | ------------------ | ---------- |
+| Admin | `admin@weather.com` | `password` |
+| User  | `user@weather.com`  | `password` |
+
 **6. Start development servers**
 
-Open two terminal windows:
+Either run everything with one command:
+
+```bash
+composer dev   # serve + queue + logs + vite, concurrently
+```
+
+…or open two terminal windows:
 
 ```bash
 # Terminal 1: Laravel server
@@ -77,7 +91,7 @@ php artisan serve
 
 ```bash
 # Terminal 2: Vite dev server
-npm run dev
+pnpm run dev
 ```
 
 Visit **http://127.0.0.1:8000** in your browser.
@@ -87,7 +101,7 @@ Visit **http://127.0.0.1:8000** in your browser.
 **Build assets for production:**
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 **Run migrations on production server:**
@@ -128,9 +142,9 @@ php artisan migrate        # Run database migrations
 php artisan db:seed        # Run database seeders
 
 # Frontend
-npm run dev               # Start Vite dev server
-npm run build             # Build for production
-npm run preview           # Preview production build locally
+pnpm run dev              # Start Vite dev server
+pnpm run build            # Build for production
+pnpm exec vue-tsc --noEmit  # Type-check the frontend
 
 # Testing
 php artisan test          # Run all tests
