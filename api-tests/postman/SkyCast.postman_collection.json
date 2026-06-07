@@ -1,0 +1,223 @@
+{
+  "info": {
+    "name": "SkyCast Pro (Inertia)",
+    "description": "Laravel + Inertia app with session + CSRF auth. Collection scripts auto-inject X-Inertia, X-Inertia-Version and X-XSRF-TOKEN, and keep the CSRF token / asset version fresh. Run 00 Bootstrap -> 01 Login first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const isBootstrap = (pm.info.requestName || '').indexOf('00 ') === 0;",
+          "pm.request.headers.upsert({ key: 'X-Requested-With', value: 'XMLHttpRequest' });",
+          "const xsrf = pm.collectionVariables.get('xsrfToken');",
+          "if (xsrf) pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: xsrf });",
+          "if (isBootstrap) {",
+          "  pm.request.headers.upsert({ key: 'Accept', value: 'text/html' });",
+          "} else {",
+          "  pm.request.headers.upsert({ key: 'X-Inertia', value: 'true' });",
+          "  pm.request.headers.upsert({ key: 'X-Inertia-Version', value: pm.collectionVariables.get('inertiaVersion') || '' });",
+          "  pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Refresh CSRF token whenever the session rotates it.",
+          "try {",
+          "  pm.response.headers.all().filter(h => h.key.toLowerCase() === 'set-cookie').forEach(h => {",
+          "    const m = /XSRF-TOKEN=([^;]+)/.exec(h.value);",
+          "    if (m) pm.collectionVariables.set('xsrfToken', decodeURIComponent(m[1]));",
+          "  });",
+          "} catch (e) {}",
+          "// Capture the Inertia asset version (avoids 409 on GET pages).",
+          "try {",
+          "  const ct = pm.response.headers.get('Content-Type') || '';",
+          "  if (ct.indexOf('application/json') !== -1) {",
+          "    const b = pm.response.json();",
+          "    if (b && b.version) pm.collectionVariables.set('inertiaVersion', String(b.version));",
+          "  } else {",
+          "    const m = /data-page=\"([^\"]+)\"/.exec(pm.response.text());",
+          "    if (m) { const j = JSON.parse(m[1].replace(/&quot;/g, '\"').replace(/&amp;/g, '&')); if (j.version) pm.collectionVariables.set('inertiaVersion', String(j.version)); }",
+          "  }",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "xsrfToken", "value": "" },
+    { "key": "inertiaVersion", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 Bootstrap",
+      "request": { "method": "GET", "url": "{{baseUrl}}/login" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('got a CSRF token', () => pm.expect(pm.collectionVariables.get('xsrfToken')).to.be.a('string').and.not.empty);"
+        ] } }
+      ]
+    },
+    {
+      "name": "01 Login (admin)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('login succeeded', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "02 Dashboard",
+      "request": { "method": "GET", "url": "{{baseUrl}}/dashboard" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Dashboard component', () => { pm.expect(pm.response.code).to.equal(200); pm.expect(pm.response.json().component).to.equal('Dashboard'); });"
+        ] } }
+      ]
+    },
+    {
+      "name": "03 Cities - List",
+      "request": { "method": "GET", "url": "{{baseUrl}}/cities" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Cities/Index with can flags', () => { const p = pm.response.json().props; pm.expect(pm.response.code).to.equal(200); pm.expect(p).to.have.property('cities'); pm.expect(p.can).to.have.property('manage_cities'); });"
+        ] } }
+      ]
+    },
+    {
+      "name": "04 Cities - Create (admin)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/cities",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Yogyakarta\",\n  \"state\": \"DIY\",\n  \"country\": \"ID\",\n  \"lat\": -7.7956,\n  \"lon\": 110.3695\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('admin can create', () => { pm.expect(pm.response.code).to.not.equal(403); pm.expect(pm.response.code).to.not.equal(422); pm.expect(pm.response.code).to.be.below(400); });"
+        ] } }
+      ]
+    },
+    {
+      "name": "05 Cities - Update (admin)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/cities/{{cityId}}",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jakarta Updated\",\n  \"country\": \"ID\",\n  \"lat\": -6.2088,\n  \"lon\": 106.8456\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('admin can update', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "06 Cities - Delete (admin)",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/cities/{{cityId}}" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('admin can delete', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "07 City Weather",
+      "request": { "method": "GET", "url": "{{baseUrl}}/cities/{{cityId}}/weather" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Cities/Weather component', () => { pm.expect(pm.response.code).to.equal(200); pm.expect(pm.response.json().component).to.equal('Cities/Weather'); });"
+        ] } }
+      ]
+    },
+    {
+      "name": "08 Admin - List Users",
+      "request": { "method": "GET", "url": "{{baseUrl}}/admin/users" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('admin can list users', () => { pm.expect(pm.response.code).to.equal(200); pm.expect(pm.response.json().component).to.equal('Admin/Users/Index'); });"
+        ] } }
+      ]
+    },
+    {
+      "name": "09 Admin - Update Role",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/users/{{targetUserId}}/role",
+        "body": { "mode": "raw", "raw": "{\n  \"role\": \"admin\"\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('admin can change a role', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "10 Logout",
+      "request": { "method": "POST", "url": "{{baseUrl}}/logout" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('logout succeeded', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "11 Register",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/register",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Tester\",\n  \"email\": \"postman.tester@example.com\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('registration succeeded (change email between runs)', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "12 Login (user)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('user login succeeded', () => pm.expect(pm.response.code).to.be.below(400));"
+        ] } }
+      ]
+    },
+    {
+      "name": "13 [user] Create City is forbidden",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/cities",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Should Fail\",\n  \"country\": \"ID\",\n  \"lat\": 0,\n  \"lon\": 0\n}", "options": { "raw": { "language": "json" } } }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('regular user is forbidden', () => pm.expect(pm.response.code).to.equal(403));"
+        ] } }
+      ]
+    },
+    {
+      "name": "14 [user] Admin Users is forbidden",
+      "request": { "method": "GET", "url": "{{baseUrl}}/admin/users" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('regular user cannot reach admin panel', () => pm.expect(pm.response.code).to.equal(403));"
+        ] } }
+      ]
+    }
+  ]
+}

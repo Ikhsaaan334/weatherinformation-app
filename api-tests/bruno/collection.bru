@@ -1,0 +1,64 @@
+docs {
+  # SkyCast Pro - Inertia API tests
+
+  This is a Laravel + Inertia app. It uses **session + CSRF auth** (not API tokens),
+  so order matters and the collection scripts handle the plumbing for you:
+
+  - `script:pre-request` injects `X-Inertia`, `X-Inertia-Version`, `X-Requested-With`
+    and `X-XSRF-TOKEN` on every request (except `00 Bootstrap`, which must read HTML).
+  - `script:post-response` keeps the CSRF token fresh from `Set-Cookie` and captures
+    the Inertia asset `version` so GET pages don't return 409.
+
+  Run order: **00 Bootstrap -> 01 Login -> ...**. Make sure the Cookie jar is enabled.
+}
+
+script:pre-request {
+  const name = (typeof req.getName === 'function' ? req.getName() : '') || '';
+  const isBootstrap = name.indexOf('00 ') === 0;
+
+  // The bootstrap call must receive HTML so we can read the asset version + CSRF cookie.
+  if (isBootstrap) {
+    req.setHeader('Accept', 'text/html');
+  } else {
+    req.setHeader('X-Inertia', 'true');
+    req.setHeader('X-Inertia-Version', bru.getVar('inertiaVersion') || '');
+    req.setHeader('Accept', 'application/json');
+  }
+
+  req.setHeader('X-Requested-With', 'XMLHttpRequest');
+
+  const xsrf = bru.getVar('xsrfToken');
+  if (xsrf) {
+    req.setHeader('X-XSRF-TOKEN', xsrf);
+  }
+}
+
+script:post-response {
+  // 1) Refresh the CSRF token whenever the server rotates it (login/logout regenerate the session).
+  try {
+    const setCookie = res.getHeader('set-cookie');
+    const cookies = Array.isArray(setCookie) ? setCookie : (setCookie ? [setCookie] : []);
+    for (const c of cookies) {
+      const m = /XSRF-TOKEN=([^;]+)/.exec(c);
+      if (m) {
+        bru.setVar('xsrfToken', decodeURIComponent(m[1]));
+      }
+    }
+  } catch (e) { /* ignore */ }
+
+  // 2) Capture the Inertia asset version so subsequent GET pages match (avoids 409).
+  try {
+    const body = res.getBody();
+    if (body && typeof body === 'object' && body.version) {
+      bru.setVar('inertiaVersion', String(body.version));
+    } else if (typeof body === 'string') {
+      const dp = /data-page="([^"]+)"/.exec(body);
+      if (dp) {
+        const json = JSON.parse(dp[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+        if (json.version) {
+          bru.setVar('inertiaVersion', String(json.version));
+        }
+      }
+    }
+  } catch (e) { /* ignore */ }
+}

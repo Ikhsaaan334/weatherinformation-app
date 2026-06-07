@@ -1,0 +1,31 @@
+meta {
+  name: 11 Register
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Bruno Tester",
+    "email": "bruno.tester@example.com",
+    "password": "password",
+    "password_confirmation": "password"
+  }
+}
+
+docs {
+  Registers a new account, which is automatically assigned the "user" role and logged in.
+  Change the email between runs (emails are unique) or you'll get a 422.
+}
+
+tests {
+  test("registration succeeded", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}
