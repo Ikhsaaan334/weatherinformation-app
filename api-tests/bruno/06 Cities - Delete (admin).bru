@@ -1,0 +1,21 @@
+meta {
+  name: 06 Cities - Delete (admin)
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{baseUrl}}/cities/{{cityId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Deletes the city in {{cityId}}. Adjust the env var to a disposable id before running.
+}
+
+tests {
+  test("admin can delete", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}

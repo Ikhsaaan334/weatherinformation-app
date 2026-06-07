@@ -1,0 +1,28 @@
+meta {
+  name: 09 Admin - Update Role
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{baseUrl}}/admin/users/{{targetUserId}}/role
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "role": "admin"
+  }
+}
+
+docs {
+  Changes the role of user {{targetUserId}}. Valid roles: "admin", "user".
+  An unknown role returns 422; changing your own role is silently ignored by the controller.
+}
+
+tests {
+  test("admin can change a role", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}

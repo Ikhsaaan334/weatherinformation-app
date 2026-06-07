@@ -1,0 +1,17 @@
+meta {
+  name: 10 Logout
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/logout
+  body: none
+  auth: none
+}
+
+tests {
+  test("logout succeeded", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}

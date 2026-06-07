@@ -1,0 +1,31 @@
+meta {
+  name: 13 [user] Create City is forbidden
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/cities
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Should Fail",
+    "country": "ID",
+    "lat": 0,
+    "lon": 0
+  }
+}
+
+docs {
+  Negative test: log in via "12 Login (user)" first. A regular user must NOT be able to
+  create cities -> expect 403.
+}
+
+tests {
+  test("regular user is forbidden", function () {
+    expect(res.getStatus()).to.equal(403);
+  });
+}

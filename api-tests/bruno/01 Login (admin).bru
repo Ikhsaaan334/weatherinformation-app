@@ -1,0 +1,29 @@
+meta {
+  name: 01 Login (admin)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}"
+  }
+}
+
+docs {
+  Logs in as the seeded admin. On success Inertia returns a redirect (followed to the
+  dashboard, 200). On bad credentials it returns 422 with validation errors.
+}
+
+tests {
+  test("login succeeded (not a validation error)", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}

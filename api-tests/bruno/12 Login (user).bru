@@ -1,0 +1,29 @@
+meta {
+  name: 12 Login (user)
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{userEmail}}",
+    "password": "{{userPassword}}"
+  }
+}
+
+docs {
+  Switch to the regular (non-admin) user. Run requests 13 and 14 after this to confirm
+  role enforcement returns 403.
+}
+
+tests {
+  test("user login succeeded", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}

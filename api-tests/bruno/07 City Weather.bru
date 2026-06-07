@@ -1,0 +1,18 @@
+meta {
+  name: 07 City Weather
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/cities/{{cityId}}/weather
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns the Cities/Weather component", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().component).to.equal('Cities/Weather');
+  });
+}

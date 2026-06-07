@@ -1,0 +1,26 @@
+meta {
+  name: 05 Cities - Update (admin)
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/cities/{{cityId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Jakarta Updated",
+    "country": "ID",
+    "lat": -6.2088,
+    "lon": 106.8456
+  }
+}
+
+tests {
+  test("admin can update", function () {
+    expect(res.getStatus()).to.be.below(400);
+  });
+}

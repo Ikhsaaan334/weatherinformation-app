@@ -1,0 +1,19 @@
+meta {
+  name: 08 Admin - List Users
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/admin/users
+  body: none
+  auth: none
+}
+
+tests {
+  test("admin can list users", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().component).to.equal('Admin/Users/Index');
+    expect(res.getBody().props).to.have.property('users');
+  });
+}

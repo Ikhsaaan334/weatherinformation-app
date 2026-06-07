@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "SkyCast Pro",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

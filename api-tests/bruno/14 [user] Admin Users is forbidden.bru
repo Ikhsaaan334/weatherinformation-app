@@ -1,0 +1,22 @@
+meta {
+  name: 14 [user] Admin Users is forbidden
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/admin/users
+  body: none
+  auth: none
+}
+
+docs {
+  Negative test: log in via "12 Login (user)" first. A regular user must NOT reach the
+  admin panel -> expect 403.
+}
+
+tests {
+  test("regular user cannot reach the admin panel", function () {
+    expect(res.getStatus()).to.equal(403);
+  });
+}

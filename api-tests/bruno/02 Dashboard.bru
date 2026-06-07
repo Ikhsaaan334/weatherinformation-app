@@ -1,0 +1,18 @@
+meta {
+  name: 02 Dashboard
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/dashboard
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns the Dashboard component", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().component).to.equal('Dashboard');
+  });
+}
