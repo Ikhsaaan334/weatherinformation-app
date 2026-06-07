@@ -1,7 +1,7 @@
 meta {
   name: 14 [user] Admin Users is forbidden
   type: http
-  seq: 15
+  seq: 14
 }
 
 get {
@@ -11,12 +11,12 @@ get {
 }
 
 docs {
-  Negative test: log in via "12 Login (user)" first. A regular user must NOT reach the
-  admin panel -> expect 403.
+  Negative test: still logged in as the regular user. Listing users is admin-only
+  -> expect 403.
 }
 
 tests {
-  test("regular user cannot reach the admin panel", function () {
+  test("regular user is forbidden", function () {
     expect(res.getStatus()).to.equal(403);
   });
 }

@@ -1,7 +1,7 @@
 meta {
   name: 13 [user] Create City is forbidden
   type: http
-  seq: 14
+  seq: 13
 }
 
 post {
@@ -20,7 +20,7 @@ body:json {
 }
 
 docs {
-  Negative test: log in via "12 Login (user)" first. A regular user must NOT be able to
+  Negative test: run "12 Login (user)" first. A regular user must NOT be able to
   create cities -> expect 403.
 }
 

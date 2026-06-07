@@ -7,6 +7,7 @@
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/logs/*
+/storage/pail
 !/storage/framework/.gitkeep
 !/storage/logs/.gitkeep
 /bootstrap/cache/*

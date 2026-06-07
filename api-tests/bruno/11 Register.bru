@@ -1,7 +1,7 @@
 meta {
   name: 11 Register
   type: http
-  seq: 12
+  seq: 11
 }
 
 post {
@@ -20,12 +20,14 @@ body:json {
 }
 
 docs {
-  Registers a new account, which is automatically assigned the "user" role and logged in.
-  Change the email between runs (emails are unique) or you'll get a 422.
+  Registers a new account (auto-assigned the "user" role) and returns a token + user.
+  Emails are unique: change the email between runs or expect 422.
 }
 
 tests {
-  test("registration succeeded", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("registration returns a token and user role", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('token');
+    expect(res.getBody().user.roles).to.include('user');
   });
 }

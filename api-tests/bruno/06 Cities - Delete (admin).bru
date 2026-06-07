@@ -1,21 +1,22 @@
 meta {
   name: 06 Cities - Delete (admin)
   type: http
-  seq: 7
+  seq: 6
 }
 
 delete {
-  url: {{baseUrl}}/cities/{{cityId}}
+  url: {{baseUrl}}/cities/{{newCityId}}
   body: none
   auth: none
 }
 
 docs {
-  Deletes the city in {{cityId}}. Adjust the env var to a disposable id before running.
+  Admin-only. Deletes the city created in step 04 (keeps seeded cities intact).
 }
 
 tests {
-  test("admin can delete", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("admin deletes the city", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().message).to.be.a('string');
   });
 }

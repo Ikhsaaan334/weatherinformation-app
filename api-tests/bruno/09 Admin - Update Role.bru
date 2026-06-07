@@ -1,7 +1,7 @@
 meta {
   name: 09 Admin - Update Role
   type: http
-  seq: 10
+  seq: 9
 }
 
 patch {
@@ -12,17 +12,18 @@ patch {
 
 body:json {
   {
-    "role": "admin"
+    "role": "user"
   }
 }
 
 docs {
-  Changes the role of user {{targetUserId}}. Valid roles: "admin", "user".
-  An unknown role returns 422; changing your own role is silently ignored by the controller.
+  Sets the role of user {{targetUserId}}. Valid roles: "admin", "user". An unknown
+  role returns 422; trying to change your own role returns 422 with a message.
 }
 
 tests {
-  test("admin can change a role", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("admin changes a role", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().message).to.be.a('string');
   });
 }

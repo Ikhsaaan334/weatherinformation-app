@@ -1,183 +1,163 @@
 # SkyCast Pro
 
-🌤️ Professional Weather Monitoring System built with **Laravel 13**, **Inertia.js**, **Vue 3**, and **Vite**.
+🌤️ Professional Weather Monitoring System — a **decoupled** application with a **Laravel 13 JSON API** backend and a standalone **Vue 3 SPA** frontend.
 
-A modern, reactive weather information application that provides real-time weather data with role-based access control and a seamless user experience.
+This repository hosts two independently-running apps:
+
+| App         | Stack                                              | Dev URL                 |
+| ----------- | -------------------------------------------------- | ----------------------- |
+| **Backend** | Laravel 13 API · Sanctum tokens · Spatie Permission | `http://localhost:8000` |
+| **Frontend** (`frontend/`) | Vue 3 · Vue Router · Pinia · axios · Tailwind · Vite | `http://localhost:5173` |
+
+The browser loads the SPA from **:5173**, and the SPA calls the API at **:8000/api** over `axios`, authenticating with a **Sanctum bearer token** (stored in `localStorage`).
+
+```
+Browser ──> Vue SPA (:5173) ──axios + Bearer token──> Laravel API (:8000/api)
+```
 
 ## ✨ Features
 
-- ⚡ **Inertia + Vue 3** - Full-stack reactivity with server-driven UI
-- 🔐 **Authentication** - Built-in Laravel Breeze authentication scaffolding
-- 🌍 **Weather Integration** - Real-time weather data powered by BMKG API
-- 👥 **Role & Permissions** - Fine-grained access control with Spatie Laravel-Permission
-- 🎯 **City Weather Pages** - Dynamic city-specific weather monitoring
-- 📱 **Modern UI** - Tailwind CSS with responsive design
-- 🚀 **TypeScript** - Type-safe frontend development
+- 🧩 **Decoupled architecture** — Vue SPA and Laravel API are fully separate apps
+- 🔐 **Token auth** — Laravel Sanctum personal access tokens (`Authorization: Bearer`)
+- 🌍 **Weather integration** — real-time data from the Open-Meteo API
+- 👥 **Roles & permissions** — fine-grained access control with Spatie Laravel-Permission
+- 📧 **Full auth flows** — register, email verification, password reset, password confirmation
+- 📱 **Modern UI** — Tailwind CSS, dark mode, responsive
+- 🚀 **TypeScript** — type-safe frontend with Pinia state management
 
 ## 📋 Requirements
 
-- **PHP** 8.4 or higher
-- **Laravel** 13
-- **Composer** (latest)
-- **Node.js** 20.19+ (Vite 8 requirement)
-- **pnpm** 10+ (`corepack enable pnpm`)
+- **PHP** 8.3+ and **Composer**
+- **MySQL** (or adjust `.env` for another driver)
+- **Node.js** 20.19+ and **pnpm** 10+ (`corepack enable pnpm`)
 
 ## 🚀 Quick Start
 
-### Prerequisites
+You need **two terminals**: one for the API, one for the SPA.
 
-Ensure you have PHP 8.3+, Node.js 20.19+, pnpm, and Composer installed on your system.
-
-### Installation Steps
-
-**1. Clone and install PHP dependencies**
+### 1. Backend (Laravel API)
 
 ```bash
+# from the repository root
 composer install
-```
-
-**2. Install JavaScript dependencies**
-
-```bash
-pnpm install
-```
-
-**3. Setup environment**
-
-```bash
 cp .env.example .env
 php artisan key:generate
+
+# configure your DB in .env, then:
+php artisan migrate --seed
+php artisan serve            # serves the API on http://localhost:8000
 ```
 
-**4. Configure your database**
-Edit `.env` and set your database credentials:
+Relevant `.env` values:
 
-```
+```dotenv
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:5173   # used for CORS + reset/verification links
+
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
 DB_DATABASE=weather_app
 DB_USERNAME=root
 DB_PASSWORD=
+
+MAIL_MAILER=log   # verification/reset emails are written to storage/logs
 ```
 
-**5. Run migrations and seeders**
+The seeder creates the `admin`/`user` roles and two demo accounts:
 
-```bash
-php artisan migrate --seed
-```
-
-This seeds the `admin` and `user` roles plus two demo accounts:
-
-| Role  | Email              | Password   |
-| ----- | ------------------ | ---------- |
+| Role  | Email               | Password   |
+| ----- | ------------------- | ---------- |
 | Admin | `admin@weather.com` | `password` |
 | User  | `user@weather.com`  | `password` |
 
-**6. Start development servers**
+> The seeded accounts are created already-verified, so you can log in immediately.
 
-Either run everything with one command:
-
-```bash
-composer dev   # serve + queue + logs + vite, concurrently
-```
-
-…or open two terminal windows:
+### 2. Frontend (Vue SPA)
 
 ```bash
-# Terminal 1: Laravel server
-php artisan serve
+cd frontend
+pnpm install
+cp .env.example .env         # VITE_API_URL=http://localhost:8000
+pnpm dev                     # serves the SPA on http://localhost:5173
 ```
 
-```bash
-# Terminal 2: Vite dev server
-pnpm run dev
-```
+Open **http://localhost:5173** in your browser.
 
-Visit **http://127.0.0.1:8000** in your browser.
+## 🔐 Auth flow
 
-## 📦 Production Deployment
+1. The SPA `POST`s credentials to `/api/login` (or `/api/register`).
+2. The API returns `{ token, user }`. The SPA stores the token in `localStorage`.
+3. Every subsequent request sends `Authorization: Bearer <token>` (axios interceptor).
+4. `POST /api/logout` revokes the current token.
 
-**Build assets for production:**
+Email verification & password reset links are generated pointing at the **SPA**
+(`FRONTEND_URL`), which then forwards the signed parameters back to the API — see
+`app/Providers/AppServiceProvider.php`. With `MAIL_MAILER=log`, the links appear in
+`storage/logs/laravel.log` for local testing.
 
-```bash
-pnpm run build
-```
+## 📡 API Endpoints
 
-**Run migrations on production server:**
+All routes are prefixed with `/api`.
 
-```bash
-php artisan migrate --force
-```
+| Method | Path | Auth | Description |
+| ------ | ---- | ---- | ----------- |
+| POST | `/register` | — | Create account, returns token + user |
+| POST | `/login` | — | Returns token + user |
+| POST | `/forgot-password` | — | Email a reset link |
+| POST | `/reset-password` | — | Reset password with token |
+| GET | `/email/verify/{id}/{hash}` | signed | Verify email (from the email link) |
+| GET | `/user` | token | Current user (roles, permissions, flags) |
+| POST | `/logout` | token | Revoke current token |
+| POST | `/email/verification-notification` | token | Resend verification email |
+| PUT | `/password` | token | Update password |
+| POST | `/confirm-password` | token | Confirm current password |
+| PATCH | `/profile` | token | Update name/email |
+| DELETE | `/profile` | token | Delete account |
+| GET | `/dashboard` | token | Dashboard weather payload |
+| GET | `/cities` | token | Paginated/searchable cities |
+| GET | `/cities/{city}/weather` | token | Weather for a city |
+| POST | `/cities` | token + admin | Create city |
+| PUT/PATCH | `/cities/{city}` | token + admin | Update city |
+| DELETE | `/cities/{city}` | token + admin | Delete city |
+| GET | `/admin/users` | token + admin | Paginated users + roles |
+| PATCH | `/admin/users/{user}/role` | token + admin | Change a user's role |
 
-**Complete deployment checklist:**
+## 🧪 API Tests
 
-- Set `APP_ENV=production` in `.env`
-- Set `APP_DEBUG=false` in `.env`
-- Run `php artisan config:cache`
-- Run `php artisan route:cache`
-- Ensure proper file permissions on `storage/` and `bootstrap/cache/`
-
-## 📝 Notes & Tips
-
-### Development
-
-- The project uses Inertia's script-based initial page payload; ensure `public/hot` points to your Vite dev server
-- If TypeScript reports missing declarations for `@inertiajs/vue3`, verify that `resources/js/types/*.d.ts` are included in `tsconfig.json`
-- For database reset during development: `php artisan migrate:fresh --seed`
-
-### Troubleshooting
-
-- **CORS Issues**: Check `config/cors.php` if API calls fail
-- **Hot Module Replacement not working**: Ensure the Vite dev server is running on `localhost:5173`
-- **Permission errors**: Run `php artisan storage:link` for public file access
-
-## 🛠️ Available Commands
-
-```bash
-# Laravel
-php artisan serve          # Start development server
-php artisan tinker         # Interactive shell
-php artisan migrate        # Run database migrations
-php artisan db:seed        # Run database seeders
-
-# Frontend
-pnpm run dev              # Start Vite dev server
-pnpm run build            # Build for production
-pnpm exec vue-tsc --noEmit  # Type-check the frontend
-
-# Testing
-php artisan test          # Run all tests
-php artisan test --filter=TestName  # Run specific test
-```
+Ready-to-run **Bruno** and **Postman** collections live in [`api-tests/`](api-tests).
+Both use bearer-token auth: run the *Login* request first and the token is captured
+automatically for the rest. See [`api-tests/README.md`](api-tests/README.md).
 
 ## 🗄️ Project Structure
 
 ```
-├── app/                    # Application code
-│   ├── Http/              # Controllers, Requests, Middleware
-│   ├── Models/            # Eloquent models (User, City)
-│   └── Services/          # Business logic (WeatherService, BmkgService)
-├── resources/
-│   ├── js/                # Vue components, TypeScript files
-│   └── views/             # Blade templates
-├── database/
-│   ├── migrations/        # Schema migrations
-│   └── seeders/          # Database seeders
-├── routes/                # Web and API routes
-├── config/                # Configuration files
-└── tests/                 # Feature and Unit tests
+├── app/Http/Controllers/Api/   # JSON API controllers (Auth, City, Dashboard, …)
+├── app/Http/Resources/         # UserResource
+├── app/Models/                 # User (HasApiTokens), City
+├── app/Services/               # WeatherService, BmkgService
+├── routes/api.php              # All API routes
+├── config/cors.php             # Allows the SPA origin
+├── frontend/                   # Standalone Vue 3 SPA
+│   └── src/
+│       ├── lib/                # axios instance, toast, error helpers
+│       ├── stores/auth.ts      # Pinia auth store (token + user)
+│       ├── router/             # Vue Router + guards
+│       ├── components/ layouts/ pages/
+└── api-tests/                  # Bruno + Postman collections
 ```
 
-## 🤝 Contributing
+## 🛠️ Common Commands
 
-Contributions are welcome! Please follow these guidelines:
+```bash
+# Backend
+php artisan serve              # API on :8000
+php artisan migrate:fresh --seed
+php artisan route:list --path=api
+php artisan pint               # code style
 
-- Use **PSR-12** coding standards
-- Write tests for new features
-- Run `php artisan pint` for code formatting (if configured)
-- Create descriptive commit messages
-- Open a pull request with a clear description
+# Frontend (run inside frontend/)
+pnpm dev                       # SPA on :5173
+pnpm build                     # type-check + production build
+```
 
 ## 📄 License
 
