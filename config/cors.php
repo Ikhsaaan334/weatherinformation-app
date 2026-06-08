@@ -18,11 +18,17 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
-    ],
+    'allowed_origins' => array_values(array_filter([
+        env('FRONTEND_URL'),
+    ])),
 
-    'allowed_origins_patterns' => [],
+    // Accept the SPA on any local port/host alias during development. Vite falls
+    // back to 5174+ when 5173 is taken, and the dev URL may be opened as either
+    // localhost or 127.0.0.1 — all of which must echo back as a matching origin
+    // or the browser blocks the response (even though the API itself responds).
+    'allowed_origins_patterns' => [
+        '#^http://(localhost|127\.0\.0\.1)(:\d+)?$#',
+    ],
 
     'allowed_headers' => ['*'],
 

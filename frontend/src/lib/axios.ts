@@ -15,9 +15,12 @@ export function clearToken(): void {
 }
 
 // All API calls go through this instance. Absolute URLs (e.g. signed email
-// verification links) bypass the baseURL automatically.
+// verification links) bypass the baseURL automatically. Fall back to the local
+// API so a missing .env doesn't send requests to "undefined/api".
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const api = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL}/api`,
+    baseURL: `${apiBaseUrl}/api`,
     headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
