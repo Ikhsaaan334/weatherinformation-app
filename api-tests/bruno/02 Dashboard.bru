@@ -1,7 +1,7 @@
 meta {
   name: 02 Dashboard
   type: http
-  seq: 3
+  seq: 2
 }
 
 get {
@@ -10,9 +10,14 @@ get {
   auth: none
 }
 
+docs {
+  Returns the dashboard weather payload for the authenticated user.
+}
+
 tests {
-  test("returns the Dashboard component", function () {
+  test("returns weatherData array", function () {
     expect(res.getStatus()).to.equal(200);
-    expect(res.getBody().component).to.equal('Dashboard');
+    expect(res.getBody()).to.have.property('weatherData');
+    expect(res.getBody().weatherData).to.be.an('array');
   });
 }

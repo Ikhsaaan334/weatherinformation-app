@@ -1,7 +1,7 @@
 meta {
   name: 03 Cities - List
   type: http
-  seq: 4
+  seq: 3
 }
 
 get {
@@ -14,11 +14,16 @@ params:query {
   search:
 }
 
+docs {
+  Paginated list of cities plus a `can.manage_cities` flag for the current user.
+}
+
 tests {
-  test("returns the Cities/Index component with can flags", function () {
+  test("returns a paginator with a can flag", function () {
     expect(res.getStatus()).to.equal(200);
-    const props = res.getBody().props;
-    expect(props).to.have.property('cities');
-    expect(props.can).to.have.property('manage_cities');
+    const body = res.getBody();
+    expect(body).to.have.property('cities');
+    expect(body.cities).to.have.property('data');
+    expect(body.can).to.have.property('manage_cities');
   });
 }

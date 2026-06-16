@@ -52,7 +52,20 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'http://localhost:8000'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | The origin of the decoupled Vue SPA. Used to build password-reset and
+    | email-verification links that land on the frontend (which then calls the
+    | API), and to allow this origin through CORS.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 
     /*
     |--------------------------------------------------------------------------

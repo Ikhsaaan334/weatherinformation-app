@@ -1,7 +1,7 @@
 meta {
   name: 01 Login (admin)
   type: http
-  seq: 2
+  seq: 1
 }
 
 post {
@@ -17,13 +17,23 @@ body:json {
   }
 }
 
+script:post-response {
+  // Capture the bearer token so every later request is authenticated as admin.
+  const body = res.getBody();
+  if (body && body.token) {
+    bru.setVar('token', body.token);
+  }
+}
+
 docs {
-  Logs in as the seeded admin. On success Inertia returns a redirect (followed to the
-  dashboard, 200). On bad credentials it returns 422 with validation errors.
+  Logs in the seeded admin and stores the returned token in the `token` variable.
+  Bad credentials return 422.
 }
 
 tests {
-  test("login succeeded (not a validation error)", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("login returns a token", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('token');
+    expect(res.getBody().user.roles).to.include('admin');
   });
 }

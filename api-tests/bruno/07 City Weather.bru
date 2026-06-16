@@ -1,7 +1,7 @@
 meta {
   name: 07 City Weather
   type: http
-  seq: 8
+  seq: 7
 }
 
 get {
@@ -10,9 +10,15 @@ get {
   auth: none
 }
 
+docs {
+  Returns the city and its current weather (from Open-Meteo). Uses the seeded
+  cityId (1), which is not touched by the create/delete steps.
+}
+
 tests {
-  test("returns the Cities/Weather component", function () {
+  test("returns city and weather", function () {
     expect(res.getStatus()).to.equal(200);
-    expect(res.getBody().component).to.equal('Cities/Weather');
+    expect(res.getBody()).to.have.property('city');
+    expect(res.getBody()).to.have.property('weather');
   });
 }

@@ -1,26 +1,31 @@
 meta {
   name: 05 Cities - Update (admin)
   type: http
-  seq: 6
+  seq: 5
 }
 
 put {
-  url: {{baseUrl}}/cities/{{cityId}}
+  url: {{baseUrl}}/cities/{{newCityId}}
   body: json
   auth: none
 }
 
 body:json {
   {
-    "name": "Jakarta Updated",
+    "name": "Yogyakarta (updated)",
     "country": "ID",
-    "lat": -6.2088,
-    "lon": 106.8456
+    "lat": -7.7956,
+    "lon": 110.3695
   }
 }
 
+docs {
+  Admin-only. Updates the city created in step 04. Returns 200 with the city.
+}
+
 tests {
-  test("admin can update", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("admin updates the city", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().city.name).to.equal("Yogyakarta (updated)");
   });
 }

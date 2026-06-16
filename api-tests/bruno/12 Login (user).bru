@@ -1,7 +1,7 @@
 meta {
   name: 12 Login (user)
   type: http
-  seq: 13
+  seq: 12
 }
 
 post {
@@ -17,13 +17,21 @@ body:json {
   }
 }
 
+script:post-response {
+  // Overwrite the token with the regular user's, for the forbidden checks below.
+  const body = res.getBody();
+  if (body && body.token) {
+    bru.setVar('token', body.token);
+  }
+}
+
 docs {
-  Switch to the regular (non-admin) user. Run requests 13 and 14 after this to confirm
-  role enforcement returns 403.
+  Logs in the seeded non-admin user and stores their token for the negative tests.
 }
 
 tests {
-  test("user login succeeded", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("user login returns a token", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().user.roles).to.include('user');
   });
 }

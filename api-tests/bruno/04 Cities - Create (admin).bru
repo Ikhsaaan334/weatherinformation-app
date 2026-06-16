@@ -1,7 +1,7 @@
 meta {
   name: 04 Cities - Create (admin)
   type: http
-  seq: 5
+  seq: 4
 }
 
 post {
@@ -20,15 +20,22 @@ body:json {
   }
 }
 
+script:post-response {
+  // Remember the new city's id so the Update/Delete requests act on it
+  // (instead of mutating seeded data).
+  const body = res.getBody();
+  if (body && body.city && body.city.id) {
+    bru.setVar('newCityId', body.city.id);
+  }
+}
+
 docs {
-  Admin-only. Success returns a redirect (status < 400). A non-admin would get 403,
-  invalid data would get 422.
+  Admin-only. Returns 201 with the created city. A non-admin gets 403; invalid data 422.
 }
 
 tests {
-  test("admin can create (not forbidden, not invalid)", function () {
-    expect(res.getStatus()).to.not.equal(403);
-    expect(res.getStatus()).to.not.equal(422);
-    expect(res.getStatus()).to.be.below(400);
+  test("admin creates a city", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().city).to.have.property('id');
   });
 }

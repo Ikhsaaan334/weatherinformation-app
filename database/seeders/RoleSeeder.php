@@ -37,6 +37,7 @@ class RoleSeeder extends Seeder
                 'name' => 'Admin',
                 'email' => 'admin@weather.com',
                 'password' => bcrypt('password'),
+                'email_verified_at' => now(),
             ]);
             $admin->assignRole($roleAdmin);
         }
@@ -47,6 +48,7 @@ class RoleSeeder extends Seeder
                 'name' => 'User',
                 'email' => 'user@weather.com',
                 'password' => bcrypt('password'),
+                'email_verified_at' => now(),
             ]);
             $user->assignRole($roleUser);
         }

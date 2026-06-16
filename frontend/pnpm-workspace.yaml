@@ -1,0 +1,10 @@
+allowBuilds:
+  esbuild: set this to true or false
+  vue-demi: set this to true or false
+# pnpm 11+ reads project settings here (no longer from package.json).
+# Allow these packages to run their install scripts.
+onlyBuiltDependencies:
+  - esbuild
+  - vue-demi
+# Don't abort `pnpm run` if optional build scripts were skipped.
+verifyDepsBeforeRun: false

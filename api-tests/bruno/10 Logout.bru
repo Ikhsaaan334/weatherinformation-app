@@ -1,7 +1,7 @@
 meta {
   name: 10 Logout
   type: http
-  seq: 11
+  seq: 10
 }
 
 post {
@@ -10,8 +10,19 @@ post {
   auth: none
 }
 
+script:post-response {
+  // The token is now revoked server-side; drop it locally too.
+  if (res.getStatus() === 200) {
+    bru.setVar('token', '');
+  }
+}
+
+docs {
+  Revokes the current access token (the admin token captured in step 01).
+}
+
 tests {
-  test("logout succeeded", function () {
-    expect(res.getStatus()).to.be.below(400);
+  test("logout succeeds", function () {
+    expect(res.getStatus()).to.equal(200);
   });
 }
